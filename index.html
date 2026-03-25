@@ -3,165 +3,207 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WFH System PRO</title>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<title>WFH PRO</title>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-body {
+body{
   margin:0;
-  font-family: Arial;
-  background:#f5f6fa;
+  font-family:'Segoe UI',sans-serif;
+  background:#f1f2f6;
 }
 
-.sidebar {
-  width:220px;
+/* SIDEBAR */
+.sidebar{
+  width:240px;
   height:100vh;
-  background:#2f3640;
-  color:#fff;
   position:fixed;
+  background:#1e272e;
+  color:#fff;
   padding:20px;
 }
 
-.sidebar button {
+.sidebar h2{
+  margin-bottom:20px;
+}
+
+.sidebar button{
   width:100%;
+  padding:12px;
   margin:5px 0;
-  padding:10px;
   border:none;
-  background:#353b48;
+  background:#485460;
   color:#fff;
+  border-radius:8px;
   cursor:pointer;
 }
 
-.content {
-  margin-left:240px;
+.sidebar button:hover{
+  background:#0fbcf9;
+}
+
+/* CONTENT */
+.content{
+  margin-left:260px;
   padding:20px;
 }
 
-.card {
+/* CARD */
+.card{
   background:#fff;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:15px;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.1);
+  margin-bottom:20px;
 }
 
-input, select {
-  width:100%;
-  padding:10px;
+/* KPI */
+.kpi{
+  display:flex;
+  gap:20px;
+}
+
+.kpi-box{
+  flex:1;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+  box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+.kpi-box h3{
+  margin:0;
+  color:#888;
+}
+
+.kpi-box h1{
   margin:5px 0;
 }
 
-button.primary {
-  background:#0984e3;
+/* FORM */
+input,select{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+button.primary{
+  background:#0fbcf9;
   color:#fff;
 }
 
-.hidden { display:none; }
-
+/* MOBILE */
 @media(max-width:768px){
-  .sidebar { display:none; }
-  .content { margin:0; padding-bottom:70px; }
-
-  .bottom-nav {
-    position:fixed;
-    bottom:0;
-    width:100%;
-    background:#fff;
-    display:flex;
-    border-top:1px solid #ccc;
-  }
-
-  .bottom-nav button {
-    flex:1;
-    padding:10px;
-    border:none;
-    background:#fff;
-  }
+  .sidebar{display:none;}
+  .content{margin:0;}
+  .kpi{flex-direction:column;}
 }
 </style>
 </head>
 
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar">
-  <h3>WFH SYSTEM</h3>
+  <h2>WFH SYSTEM</h2>
   <button onclick="show('dashboard')">Dashboard</button>
   <button onclick="show('checkin')">Check-in</button>
-  <button id="adminBtn" onclick="show('admin')" class="hidden">Admin</button>
+  <button onclick="show('admin')">Admin</button>
   <button onclick="logout()">Logout</button>
 </div>
 
 <div class="content">
 
-  <!-- LOGIN -->
-  <div id="loginPage">
-    <div class="card">
-      <h2>Login</h2>
-      <input id="user" placeholder="Username">
-      <input id="pass" type="password" placeholder="Password">
-      <button class="primary" onclick="login()">Login</button>
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="card">
+    <h2>Login</h2>
+    <input id="user" placeholder="Username">
+    <input id="pass" type="password" placeholder="Password">
+    <button class="primary" onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardPage" style="display:none">
+
+  <div class="kpi">
+    <div class="kpi-box">
+      <h3>WFH</h3>
+      <h1 id="kpi_wfh">0</h1>
+    </div>
+    <div class="kpi-box">
+      <h3>Onsite</h3>
+      <h1 id="kpi_onsite">0</h1>
+    </div>
+    <div class="kpi-box">
+      <h3>Other</h3>
+      <h1 id="kpi_other">0</h1>
     </div>
   </div>
 
-  <!-- DASHBOARD -->
-  <div id="dashboardPage" class="hidden">
-    <div class="card">
-      <h2>Dashboard</h2>
-      <canvas id="chart"></canvas>
-    </div>
-  </div>
-
-  <!-- CHECKIN -->
-  <div id="checkinPage" class="hidden">
-    <div class="card">
-      <h2>Check-in</h2>
-      <select id="type">
-        <option>WFH</option>
-        <option>Onsite</option>
-        <option>Other</option>
-      </select>
-      <input id="location" placeholder="สถานที่">
-      <input id="detail" placeholder="รายละเอียดงาน">
-      <button class="primary" onclick="checkin()">Check-in</button>
-    </div>
-  </div>
-
-  <!-- ADMIN -->
-  <div id="adminPage" class="hidden">
-    <div class="card">
-      <h2>Admin Panel</h2>
-
-      <h3>เพิ่มผู้ใช้</h3>
-      <input id="newUser" placeholder="Username">
-      <input id="newPass" placeholder="Password">
-      <select id="role">
-        <option>user</option>
-        <option>admin</option>
-      </select>
-      <button onclick="createUser()">Create User</button>
-
-    </div>
+  <div class="card">
+    <h2>สถิติการทำงาน</h2>
+    <canvas id="chart"></canvas>
   </div>
 
 </div>
 
-<div class="bottom-nav">
-  <button onclick="show('dashboard')">🏠</button>
-  <button onclick="show('checkin')">⏱</button>
-  <button onclick="show('admin')">⚙️</button>
+<!-- CHECKIN -->
+<div id="checkinPage" style="display:none">
+  <div class="card">
+    <h2>Check-in</h2>
+
+    <select id="type">
+      <option>WFH</option>
+      <option>Onsite</option>
+      <option>Other</option>
+    </select>
+
+    <input id="location" placeholder="สถานที่">
+    <input id="detail" placeholder="รายละเอียด">
+
+    <button class="primary" onclick="checkin()">Check-in</button>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="adminPage" style="display:none">
+  <div class="card">
+    <h2>สร้างผู้ใช้</h2>
+
+    <input id="newUser" placeholder="Username">
+    <input id="newPass" placeholder="Password">
+
+    <select id="role">
+      <option>user</option>
+      <option>admin</option>
+    </select>
+
+    <button onclick="createUser()">Create</button>
+  </div>
+</div>
+
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzsBWuNLlgxpqei4fO4PZeHtWFOlvyjPFV_iEYUXPcoILWRika2b29jU1_xEgr_I-20/exec";
+const API = "PUT_API_URL";
 
-// ===== NAV =====
-function show(page){
-  document.querySelectorAll("[id$='Page']").forEach(e=>e.classList.add("hidden"));
-  document.getElementById(page+"Page").classList.remove("hidden");
+// NAV
+function show(p){
+  ["login","dashboard","checkin","admin"].forEach(x=>{
+    document.getElementById(x+"Page").style.display="none";
+  });
+  document.getElementById(p+"Page").style.display="block";
 }
 
-// ===== LOGIN =====
+// LOGIN
 async function login(){
   const res = await fetch(API,{
     method:"POST",
@@ -176,41 +218,52 @@ async function login(){
 
   if(data.token){
     localStorage.setItem("token",data.token);
-    localStorage.setItem("role",data.role);
-
-    if(data.role==="admin"){
-      adminBtn.classList.remove("hidden");
-    }
-
-    Swal.fire("สำเร็จ","เข้าสู่ระบบแล้ว","success");
     show("dashboard");
     loadDashboard();
-
   }else{
     Swal.fire("ผิดพลาด","Login ไม่สำเร็จ","error");
   }
 }
 
-// ===== LOGOUT =====
-function logout(){
-  localStorage.clear();
-  location.reload();
+// DASHBOARD
+async function loadDashboard(){
+  const data = await api("getDashboard");
+
+  // FIX undefined
+  const WFH = data.WFH || 0;
+  const Onsite = data.Onsite || 0;
+  const Other = data.Other || 0;
+
+  document.getElementById("kpi_wfh").innerText = WFH;
+  document.getElementById("kpi_onsite").innerText = Onsite;
+  document.getElementById("kpi_other").innerText = Other;
+
+  new Chart(document.getElementById("chart"),{
+    type:"bar",
+    data:{
+      labels:["WFH","Onsite","Other"],
+      datasets:[{
+        label:"จำนวน",
+        data:[WFH,Onsite,Other]
+      }]
+    }
+  });
 }
 
-// ===== API =====
-async function api(action, payload={}){
+// API
+async function api(action,data={}){
   const res = await fetch(API,{
     method:"POST",
     body:JSON.stringify({
       action,
       token:localStorage.getItem("token"),
-      ...payload
+      ...data
     })
   });
   return res.json();
 }
 
-// ===== CHECKIN =====
+// CHECKIN
 function checkin(){
   navigator.geolocation.getCurrentPosition(async pos=>{
     const res = await api("checkin",{
@@ -229,22 +282,7 @@ function checkin(){
   });
 }
 
-// ===== DASHBOARD =====
-async function loadDashboard(){
-  const data = await api("getDashboard");
-
-  new Chart(document.getElementById("chart"),{
-    type:"bar",
-    data:{
-      labels:["WFH","Onsite","Other"],
-      datasets:[{
-        data:[data.WFH,data.Onsite,data.Other]
-      }]
-    }
-  });
-}
-
-// ===== CREATE USER =====
+// CREATE USER
 async function createUser(){
   const res = await api("createUser",{
     username:newUser.value,
@@ -253,10 +291,14 @@ async function createUser(){
   });
 
   if(res.success){
-    Swal.fire("สำเร็จ","สร้างผู้ใช้แล้ว","success");
-  }else{
-    Swal.fire("ผิดพลาด",res.error,"error");
+    Swal.fire("สำเร็จ","เพิ่มผู้ใช้แล้ว","success");
   }
+}
+
+// LOGOUT
+function logout(){
+  localStorage.clear();
+  location.reload();
 }
 </script>
 
