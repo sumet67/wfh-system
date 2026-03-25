@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WFH System PRO</title>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#f5f6fa;
+}
+
+.sidebar {
+  width:220px;
+  height:100vh;
+  background:#2f3640;
+  color:#fff;
+  position:fixed;
+  padding:20px;
+}
+
+.sidebar button {
+  width:100%;
+  margin:5px 0;
+  padding:10px;
+  border:none;
+  background:#353b48;
+  color:#fff;
+  cursor:pointer;
+}
+
+.content {
+  margin-left:240px;
+  padding:20px;
+}
+
+.card {
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+}
+
+input, select {
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+}
+
+button.primary {
+  background:#0984e3;
+  color:#fff;
+}
+
+.hidden { display:none; }
+
+@media(max-width:768px){
+  .sidebar { display:none; }
+  .content { margin:0; padding-bottom:70px; }
+
+  .bottom-nav {
+    position:fixed;
+    bottom:0;
+    width:100%;
+    background:#fff;
+    display:flex;
+    border-top:1px solid #ccc;
+  }
+
+  .bottom-nav button {
+    flex:1;
+    padding:10px;
+    border:none;
+    background:#fff;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <h3>WFH SYSTEM</h3>
+  <button onclick="show('dashboard')">Dashboard</button>
+  <button onclick="show('checkin')">Check-in</button>
+  <button id="adminBtn" onclick="show('admin')" class="hidden">Admin</button>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<div class="content">
+
+  <!-- LOGIN -->
+  <div id="loginPage">
+    <div class="card">
+      <h2>Login</h2>
+      <input id="user" placeholder="Username">
+      <input id="pass" type="password" placeholder="Password">
+      <button class="primary" onclick="login()">Login</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboardPage" class="hidden">
+    <div class="card">
+      <h2>Dashboard</h2>
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+
+  <!-- CHECKIN -->
+  <div id="checkinPage" class="hidden">
+    <div class="card">
+      <h2>Check-in</h2>
+      <select id="type">
+        <option>WFH</option>
+        <option>Onsite</option>
+        <option>Other</option>
+      </select>
+      <input id="location" placeholder="สถานที่">
+      <input id="detail" placeholder="รายละเอียดงาน">
+      <button class="primary" onclick="checkin()">Check-in</button>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="adminPage" class="hidden">
+    <div class="card">
+      <h2>Admin Panel</h2>
+
+      <h3>เพิ่มผู้ใช้</h3>
+      <input id="newUser" placeholder="Username">
+      <input id="newPass" placeholder="Password">
+      <select id="role">
+        <option>user</option>
+        <option>admin</option>
+      </select>
+      <button onclick="createUser()">Create User</button>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-nav">
+  <button onclick="show('dashboard')">🏠</button>
+  <button onclick="show('checkin')">⏱</button>
+  <button onclick="show('admin')">⚙️</button>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbynmufTSY8z_6SRhhUz3_N5ys3hZAIhE0QDJir91tmOvuGSFZrZD-H8bSpwqi_BYYIX/exec";
+
+// ===== NAV =====
+function show(page){
+  document.querySelectorAll("[id$='Page']").forEach(e=>e.classList.add("hidden"));
+  document.getElementById(page+"Page").classList.remove("hidden");
+}
+
+// ===== LOGIN =====
+async function login(){
+  const res = await fetch(API,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"login",
+      username:user.value,
+      password:pass.value
+    })
+  });
+
+  const data = await res.json();
+
+  if(data.token){
+    localStorage.setItem("token",data.token);
+    localStorage.setItem("role",data.role);
+
+    if(data.role==="admin"){
+      adminBtn.classList.remove("hidden");
+    }
+
+    Swal.fire("สำเร็จ","เข้าสู่ระบบแล้ว","success");
+    show("dashboard");
+    loadDashboard();
+
+  }else{
+    Swal.fire("ผิดพลาด","Login ไม่สำเร็จ","error");
+  }
+}
+
+// ===== LOGOUT =====
+function logout(){
+  localStorage.clear();
+  location.reload();
+}
+
+// ===== API =====
+async function api(action, payload={}){
+  const res = await fetch(API,{
+    method:"POST",
+    body:JSON.stringify({
+      action,
+      token:localStorage.getItem("token"),
+      ...payload
+    })
+  });
+  return res.json();
+}
+
+// ===== CHECKIN =====
+function checkin(){
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const res = await api("checkin",{
+      type:type.value,
+      location:location.value,
+      detail:detail.value,
+      lat:pos.coords.latitude,
+      lng:pos.coords.longitude
+    });
+
+    if(res.success){
+      Swal.fire("สำเร็จ","ลงเวลาแล้ว","success");
+    }else{
+      Swal.fire("ผิดพลาด",res.error,"error");
+    }
+  });
+}
+
+// ===== DASHBOARD =====
+async function loadDashboard(){
+  const data = await api("getDashboard");
+
+  new Chart(document.getElementById("chart"),{
+    type:"bar",
+    data:{
+      labels:["WFH","Onsite","Other"],
+      datasets:[{
+        data:[data.WFH,data.Onsite,data.Other]
+      }]
+    }
+  });
+}
+
+// ===== CREATE USER =====
+async function createUser(){
+  const res = await api("createUser",{
+    username:newUser.value,
+    password:newPass.value,
+    role:role.value
+  });
+
+  if(res.success){
+    Swal.fire("สำเร็จ","สร้างผู้ใช้แล้ว","success");
+  }else{
+    Swal.fire("ผิดพลาด",res.error,"error");
+  }
+}
+</script>
+
+</body>
+</html>
